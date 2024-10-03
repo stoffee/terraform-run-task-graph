@@ -36,11 +36,11 @@ data "aws_ami" "ubuntu" {
 
 
 resource "aws_instance" "demo" {
- ami =  data.aws_ami.ubuntu.id
+  ami = data.aws_ami.ubuntu.id
 
-   instance_type = "t2.small"
-
-  key_name = aws_key_pair.generated_key.key_name
+  instance_type               = "t2.small"
+  associate_public_ip_address = "true"
+  key_name                    = aws_key_pair.generated_key.key_name
 
   user_data = data.template_file.cloud-init.rendered
 }

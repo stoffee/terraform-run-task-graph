@@ -146,7 +146,7 @@ data "tfe_workspace" "demo" {
 }
 
 resource "tfe_workspace_run_task" "demo" {
-  workspace_id      = resource.tfe_workspace.demo.id
+  workspace_id      = data.tfe_workspace.demo.id
   task_id           = resource.tfe_organization_run_task.demo.id
   enforcement_level = "mandatory"
   stages = ["post_plan"]

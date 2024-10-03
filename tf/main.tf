@@ -1,5 +1,6 @@
 provider "aws" {
-  region = "us-west-2"
+  #region = "us-west-2"
+  region = "us-east-2"
 }
 
 resource "tls_private_key" "demo" {

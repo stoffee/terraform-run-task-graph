@@ -1,18 +1,10 @@
 terraform {
   required_providers {
-    tfe = {
-      source = "hashicorp/tfe"
-      version = "0.59.0"
-    }
     aws = {
       source = "hashicorp/aws"
       version = "5.69.0"
     }
   }
-}
-
-provider "tfe" {
-  # Configuration options
 }
 
 provider "aws" {
@@ -100,21 +92,6 @@ data "template_file" "cloud-init" {
 
 output "aws_instance_login_information" {
   value = <<INSTANCEIP
-  http://@${aws_instance.demo.public_ip}
+  http://${aws_instance.demo.public_ip}
 INSTANCEIP
 }
-
-variable "ddr_tfc_organization" {
-  type        = string
-  description = "The name of the Terraform Cloud organization"
-}
-
-/*
-resource "tfe_organization_run_task" "demo" {
-  organization = var.ddr_tfc_organization
-  url         = "http://${aws_instance.demo.public_ip}"
-  name        = "TerraformGraph"
-  enabled     = true
-  description = "HCP Terraform Run Task for Graph"
-}
-*/

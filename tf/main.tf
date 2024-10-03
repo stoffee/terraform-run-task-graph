@@ -55,6 +55,8 @@ output "aws_instance_login_information" {
 
 Your ip
   ${aws_instance.demo.public_ip}
+  $ ssh -i ${aws_key_pair.generated_key.key_name}.pem ubuntu@${aws_instance.demo.public_ip}
+  ${aws_key_pair.generated_key.fingerprint}
 
 INSTANCEIP
 }

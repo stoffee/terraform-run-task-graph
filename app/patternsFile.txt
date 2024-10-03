@@ -1,0 +1,5 @@
+(?s)provisioner\s+"remote-exec"\s+\{.*?\}
+(?s)provisioner\s+"local-exec"\s+\{.*?\}
+(?s)data\s+"external"\s+\{.*?\}
+(?s)data\s+"http\s+\{.*?\}
+(?s)resource\s+"toolbox\s+\{.*?\}

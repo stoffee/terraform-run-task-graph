@@ -50,7 +50,7 @@ The run task will fail (if set to "mandatory" enforcement) or provide a warning 
 
 For enhanced security, we recommend using the HMAC-enabled version located in the `/secure` folder. This version includes HMAC verification to ensure the integrity and authenticity of incoming requests.
 
-[View the Secure Version README](./secure/README.md)
+[View the Secure Version README](./secure/)
 
 ## Contributing
 

@@ -36,7 +36,8 @@ resource "aws_security_group_rule" "demo_app" {
   from_port         = 80
   to_port           = 80
   protocol          = "tcp"
-  cidr_blocks       = [aws_vpc.demo.cidr_block]
+  cidr_blocks       = ["0.0.0.0/0"]
+  #cidr_blocks       = [aws_vpc.demo.cidr_block]
   security_group_id = aws_security_group.demo.id
 }
 
@@ -45,7 +46,7 @@ resource "aws_security_group_rule" "demo_ssh" {
   from_port         = 22
   to_port           = 22
   protocol          = "tcp"
-  cidr_blocks       = [aws_vpc.demo.cidr_block]
+  cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.demo.id
 }
 

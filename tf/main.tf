@@ -8,7 +8,7 @@ resource "tls_private_key" "demo" {
 }
 
 resource "aws_key_pair" "generated_key" {
-  key_name = "${random_pet.server.id}-key"
+  key_name   = "${random_pet.server.id}-key"
   public_key = tls_private_key.demo.public_key_openssh
 }
 
@@ -30,11 +30,11 @@ resource "aws_security_group" "demo" {
 }
 
 resource "aws_security_group_rule" "demo_app" {
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+  type        = "ingress"
+  from_port   = 80
+  to_port     = 80
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
   #cidr_blocks       = [aws_vpc.demo.cidr_block]
   security_group_id = aws_security_group.demo.id
 }
@@ -70,10 +70,10 @@ resource "aws_instance" "demo" {
 
   instance_type               = "t2.small"
   associate_public_ip_address = "true"
-    key_name                    = aws_key_pair.generated_key.key_name
-   vpc_security_group_ids = [aws_security_group.demo.id]
-  subnet_id              = aws_subnet.demo.id
-  user_data              = data.template_file.cloud-init.rendered
+  key_name                    = aws_key_pair.generated_key.key_name
+  vpc_security_group_ids      = [aws_security_group.demo.id]
+  subnet_id                   = aws_subnet.demo.id
+  user_data                   = data.template_file.cloud-init.rendered
 }
 
 data "template_file" "cloud-init" {
@@ -83,14 +83,19 @@ data "template_file" "cloud-init" {
 
 output "aws_instance_login_information" {
   value = <<INSTANCEIP
-  $ ssh -i ${aws_key_pair.generated_key.key_name}.pem ubuntu@${aws_instance.demo.public_ip}
+  http://@${aws_instance.demo.public_ip}
 INSTANCEIP
 }
 
+variable "ddr_tfc_organization" {
+  type        = string
+  description = "The name of the Terraform Cloud organization"
+}
+
 resource "tfe_organization_run_task" "demo" {
-  organization = "org-name"
-  url          = "http://${aws_instance.demo.public_ip}"
-  name         = "TerraformGraph"
-  enabled      = true
-  description  = "HCP Terraform Run Task for Graph"
+  organization = var.ddr_tfc_organization
+  url         = "http://${aws_instance.demo.public_ip}"
+  name        = "TerraformGraph"
+  enabled     = true
+  description = "HCP Terraform Run Task for Graph"
 }

@@ -8,7 +8,7 @@ resource "tls_private_key" "demo" {
 }
 
 resource "aws_key_pair" "generated_key" {
-  key_name = "demo-key"
+  key_name = "${random_pet.server.id}-key"
   public_key = tls_private_key.demo.public_key_openssh
 }
 
@@ -85,4 +85,12 @@ output "aws_instance_login_information" {
   value = <<INSTANCEIP
   $ ssh -i ${aws_key_pair.generated_key.key_name}.pem ubuntu@${aws_instance.demo.public_ip}
 INSTANCEIP
+}
+
+resource "tfe_organization_run_task" "demo" {
+  organization = "org-name"
+  url          = "http://${aws_instance.demo.public_ip}"
+  name         = "TerraformGraph"
+  enabled      = true
+  description  = "HCP Terraform Run Task for Graph"
 }

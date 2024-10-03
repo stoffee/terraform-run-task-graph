@@ -8,8 +8,8 @@ resource "tls_private_key" "demo" {
 }
 
 resource "aws_key_pair" "generated_key" {
-  #key_name   = "demo-key"
-  key_name   = "cdunlap-sandbox-aws"
+  key_name = "demo-key"
+
   public_key = tls_private_key.demo.public_key_openssh
 }
 
@@ -41,7 +41,8 @@ resource "aws_instance" "demo" {
 
   instance_type               = "t2.small"
   associate_public_ip_address = "true"
-  key_name                    = aws_key_pair.generated_key.key_name
+  #  key_name                    = aws_key_pair.generated_key.key_name
+  key_name = "cdunlap-sandbox-aws"
 
   user_data = data.template_file.cloud-init.rendered
 }

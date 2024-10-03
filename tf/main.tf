@@ -8,7 +8,8 @@ resource "tls_private_key" "demo" {
 }
 
 resource "aws_key_pair" "generated_key" {
-  key_name   = "demo-key"
+  #key_name   = "demo-key"
+  key_name   = "cdunlap-sandbox-aws"
   public_key = tls_private_key.demo.public_key_openssh
 }
 

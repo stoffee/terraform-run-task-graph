@@ -20,6 +20,11 @@ resource "aws_vpc" "demo" {
   cidr_block = "10.0.0.0/16"
 }
 
+resource "aws_subnet" "demo" {
+  vpc_id     = aws_vpc.demo.id
+  cidr_block = "10.0.1.0/24"  # Adjust this as needed
+}
+
 resource "aws_security_group" "demo" {
   name        = "${random_pet.server.id}-sg"
   description = "Allow 22 and 80 for demo inbound traffic and all outbound traffic"

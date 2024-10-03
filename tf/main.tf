@@ -75,7 +75,7 @@ resource "aws_instance" "demo" {
   #  key_name                    = aws_key_pair.generated_key.key_name
   key_name               = "cdunlap-sandbox-aws"
   vpc_security_group_ids = [aws_security_group.demo.id]
-  subnet_id              = aws_subnet.demo.id # You need to create a subnet resource
+ # subnet_id              = aws_subnet.demo.id # You need to create a subnet resource
   user_data              = data.template_file.cloud-init.rendered
 }
 

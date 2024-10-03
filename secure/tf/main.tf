@@ -133,3 +133,21 @@ resource "tfe_organization_run_task" "demo" {
   enabled      = true
   hmac_key     = random_id.hmac_key.hex
 }
+
+# Variable declaration for TFC workspace
+variable "tfc_workspace" {
+  description = "The name of the Terraform Cloud workspace"
+  type        = string
+}
+
+data "tfe_workspace" "demo" {
+  name         = var.tfc_workspace
+  organization = var.tfc_organization
+}
+
+resource "tfe_workspace_run_task" "demo" {
+  workspace_id      = resource.tfe_workspace.demo.id
+  task_id           = resource.tfe_organization_run_task.demo.id
+  enforcement_level = "mandatory"
+  stages = ["post_plan"]
+}

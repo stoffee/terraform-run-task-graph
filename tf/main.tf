@@ -1,6 +1,5 @@
 provider "aws" {
-  #region = "us-west-2"
-  region = "us-east-2"
+  region = "us-west-2"
 }
 
 resource "tls_private_key" "demo" {
@@ -10,7 +9,6 @@ resource "tls_private_key" "demo" {
 
 resource "aws_key_pair" "generated_key" {
   key_name = "demo-key"
-
   public_key = tls_private_key.demo.public_key_openssh
 }
 
@@ -22,7 +20,7 @@ resource "aws_vpc" "demo" {
 
 resource "aws_subnet" "demo" {
   vpc_id     = aws_vpc.demo.id
-  cidr_block = "10.0.1.0/24"  # Adjust this as needed
+  cidr_block = "10.0.1.0/24"
 }
 
 resource "aws_security_group" "demo" {
@@ -72,10 +70,9 @@ resource "aws_instance" "demo" {
 
   instance_type               = "t2.small"
   associate_public_ip_address = "true"
-  #  key_name                    = aws_key_pair.generated_key.key_name
-  key_name               = "cdunlap-sandbox-aws"
-  # vpc_security_group_ids = [aws_security_group.demo.id]
- # subnet_id              = aws_subnet.demo.id # You need to create a subnet resource
+    key_name                    = aws_key_pair.generated_key.key_name
+   vpc_security_group_ids = [aws_security_group.demo.id]
+  subnet_id              = aws_subnet.demo.id
   user_data              = data.template_file.cloud-init.rendered
 }
 

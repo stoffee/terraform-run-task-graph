@@ -49,3 +49,12 @@ data "template_file" "cloud-init" {
   template = file("cloud-init.tpl")
 
 }
+
+output "aws_instance_login_information" {
+  value = <<INSTANCEIP
+
+Your ip
+  ${aws_instance.demo.public_ip}
+
+INSTANCEIP
+}

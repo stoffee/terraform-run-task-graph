@@ -109,7 +109,7 @@ variable "ddr_tfc_organization" {
   description = "The name of the Terraform Cloud organization"
 }
 
-
+/*
 resource "tfe_organization_run_task" "demo" {
   organization = var.ddr_tfc_organization
   url         = "http://${aws_instance.demo.public_ip}"
@@ -117,3 +117,4 @@ resource "tfe_organization_run_task" "demo" {
   enabled     = true
   description = "HCP Terraform Run Task for Graph"
 }
+*/

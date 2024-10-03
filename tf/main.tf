@@ -1,3 +1,20 @@
+terraform {
+  required_providers {
+    tfe = {
+      source = "hashicorp/tfe"
+      version = "0.59.0"
+    }
+    aws = {
+      source = "hashicorp/aws"
+      version = "5.69.0"
+    }
+  }
+}
+
+provider "tfe" {
+  # Configuration options
+}
+
 provider "aws" {
   region = "us-west-2"
 }
@@ -91,6 +108,7 @@ variable "ddr_tfc_organization" {
   type        = string
   description = "The name of the Terraform Cloud organization"
 }
+
 
 resource "tfe_organization_run_task" "demo" {
   organization = var.ddr_tfc_organization

@@ -4,7 +4,15 @@ terraform {
       source = "hashicorp/aws"
       version = "5.69.0"
     }
+    tfe = {
+      source = "hashicorp/tfe"
+      version = "0.59.0"
+    }
   }
+}
+
+provider "tfe" {
+  # Configuration options
 }
 
 provider "aws" {

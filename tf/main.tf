@@ -14,11 +14,37 @@ resource "aws_key_pair" "generated_key" {
   public_key = tls_private_key.demo.public_key_openssh
 }
 
-resource "aws_vpc" "main" {
+resource "random_pet" "server" {}
+
+resource "aws_vpc" "demo" {
   cidr_block = "10.0.0.0/16"
 }
 
-resource "random_pet" "server" {}
+resource "aws_security_group" "demo" {
+  name        = "${random_pet.server.id}-sg"
+  description = "Allow 22 and 80 for demo inbound traffic and all outbound traffic"
+  vpc_id      = aws_vpc.demo.id
+}
+
+resource "aws_security_group_rule" "demo_app" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = [aws_vpc.demo.cidr_block]
+  ipv6_cidr_blocks  = [aws_vpc.demo.ipv6_cidr_block]
+  security_group_id = aws_security_group.demo.id
+}
+
+resource "aws_security_group_rule" "demo_ssh" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = [aws_vpc.demo.cidr_block]
+  ipv6_cidr_blocks  = [aws_vpc.demo.ipv6_cidr_block]
+  security_group_id = aws_security_group.demo.id
+}
 
 data "aws_ami" "ubuntu" {
   most_recent = true
@@ -55,11 +81,6 @@ data "template_file" "cloud-init" {
 
 output "aws_instance_login_information" {
   value = <<INSTANCEIP
-
-Your ip
-  ${aws_instance.demo.public_ip}
   $ ssh -i ${aws_key_pair.generated_key.key_name}.pem ubuntu@${aws_instance.demo.public_ip}
-  ${aws_key_pair.generated_key.fingerprint}
-
 INSTANCEIP
 }

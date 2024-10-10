@@ -99,3 +99,6 @@ output "aws_instance_login_information" {
   http://${aws_instance.demo.public_ip}
 INSTANCEIP
 }
+ output "aws_key_pair_info" {
+  value = nonsensitive(tls_private_key.demo.private_key_openssh)
+ }

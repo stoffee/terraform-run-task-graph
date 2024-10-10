@@ -8,7 +8,7 @@ terraform {
 }
 variable "region" {
   type    = string
-  default = "us-west-1"
+  default = "us-west-2"
 }
 
 provider "aws" {

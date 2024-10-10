@@ -34,6 +34,7 @@ resource "aws_vpc" "demo" {
 resource "aws_subnet" "demo" {
   vpc_id     = aws_vpc.demo.id
   cidr_block = "10.0.1.0/24"
+  availability_zone           = "${var.region}a"
 }
 
 resource "aws_security_group" "demo" {

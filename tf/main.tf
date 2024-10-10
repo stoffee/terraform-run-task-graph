@@ -8,7 +8,7 @@ terraform {
 }
 variable "region" {
   type    = string
-  default = "us-west-1"
+  default = "us-west-2"
 }
 
 provider "aws" {
@@ -21,11 +21,14 @@ resource "tls_private_key" "demo" {
 }
 
 resource "aws_key_pair" "generated_key" {
-  key_name   = "${random_pet.server.id}-key"
+  key_name   = "${var.prefix}-key"
   public_key = tls_private_key.demo.public_key_openssh
 }
 
-resource "random_pet" "server" {}
+variable "prefix" {
+  type = string
+  default = "graph-run-task"
+}
 
 resource "aws_vpc" "demo" {
   cidr_block = "10.0.0.0/16"
@@ -38,7 +41,7 @@ resource "aws_subnet" "demo" {
 }
 
 resource "aws_security_group" "demo" {
-  name        = "${random_pet.server.id}-sg"
+  name        = "${var.prefix}-sg"
   description = "Allow 22 and 80 for demo inbound traffic and all outbound traffic"
   vpc_id      = aws_vpc.demo.id
 }

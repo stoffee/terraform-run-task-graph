@@ -1,14 +1,18 @@
 terraform {
   required_providers {
     aws = {
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
       version = "5.69.0"
     }
   }
 }
+variable "region" {
+  type    = string
+  default = "us-west-1"
+}
 
 provider "aws" {
-  region = "us-west-2"
+  region = var.region
 }
 
 resource "tls_private_key" "demo" {
@@ -75,8 +79,8 @@ data "aws_ami" "ubuntu" {
 
 
 resource "aws_instance" "demo" {
-  ami = data.aws_ami.ubuntu.id
-  availability_zone = "us-west-2a"
+  ami                         = data.aws_ami.ubuntu.id
+  availability_zone           = "${var.region}a"
   instance_type               = "t2.small"
   associate_public_ip_address = "true"
   key_name                    = aws_key_pair.generated_key.key_name

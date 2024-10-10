@@ -122,32 +122,16 @@ data "template_file" "cloud-init" {
   template = file("cloud-init.tpl")
 }
 
-resource "local_file" "private_key" {
-  content         = tls_private_key.demo.private_key_pem
-  filename        = "${path.module}/private_key.pem"
-  file_permission = "0600"
-}
+data "external" "cloud_init_logs" {
+  program = ["bash", "-c", <<EOT
+    sleep 180 &&
+    cloud_init_output=$(ssh -o StrictHostKeyChecking=no -i <(echo '${tls_private_key.demo.private_key_pem}') ubuntu@${aws_instance.demo.public_ip} 'sudo cat /var/log/cloud-init-output.log') &&
+    cloud_init_log=$(ssh -o StrictHostKeyChecking=no -i <(echo '${tls_private_key.demo.private_key_pem}') ubuntu@${aws_instance.demo.public_ip} 'sudo cat /var/log/cloud-init.log') &&
+    echo "{\"cloud_init_output\": \"$cloud_init_output\", \"cloud_init_log\": \"$cloud_init_log\"}" | jq -R -s -c '{"cloud_init_output": ., "cloud_init_log": .}'
+  EOT
+  ]
 
-resource "null_resource" "get_logs" {
   depends_on = [aws_instance.demo]
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      sleep 180
-      ssh -o StrictHostKeyChecking=no -i ${local_file.private_key.filename} ubuntu@${aws_instance.demo.public_ip} 'sudo cat /var/log/cloud-init-output.log' > cloud-init-output.log
-      ssh -o StrictHostKeyChecking=no -i ${local_file.private_key.filename} ubuntu@${aws_instance.demo.public_ip} 'sudo cat /var/log/cloud-init.log' > cloud-init.log
-    EOT
-  }
-}
-
-data "local_file" "cloud_init_output_log" {
-  depends_on = [null_resource.get_logs]
-  filename   = "${path.module}/cloud-init-output.log"
-}
-
-data "local_file" "cloud_init_log" {
-  depends_on = [null_resource.get_logs]
-  filename   = "${path.module}/cloud-init.log"
 }
 
 output "aws_instance_login_information" {
@@ -161,9 +145,9 @@ output "aws_key_pair_info" {
 }
 
 output "cloud_init_output_log" {
-  value = data.local_file.cloud_init_output_log.content
+  value = data.external.cloud_init_logs.result.cloud_init_output
 }
 
 output "cloud_init_log" {
-  value = data.local_file.cloud_init_log.content
+  value = data.external.cloud_init_logs.result.cloud_init_log
 }

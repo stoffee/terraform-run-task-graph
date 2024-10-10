@@ -122,45 +122,32 @@ data "template_file" "cloud-init" {
   template = file("cloud-init.tpl")
 }
 
+resource "local_file" "private_key" {
+  content         = tls_private_key.demo.private_key_pem
+  filename        = "${path.module}/private_key.pem"
+  file_permission = "0600"
+}
+
 resource "null_resource" "get_logs" {
   depends_on = [aws_instance.demo]
 
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = tls_private_key.demo.private_key_pem
-    host        = aws_instance.demo.public_ip
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sleep 180",  # Wait for 3 minutes
-      "sudo cat /var/log/cloud-init-output.log > /tmp/cloud-init-output.log",
-      "sudo cat /var/log/cloud-init.log > /tmp/cloud-init.log"
-    ]
+  provisioner "local-exec" {
+    command = <<-EOT
+      sleep 180
+      ssh -o StrictHostKeyChecking=no -i ${local_file.private_key.filename} ubuntu@${aws_instance.demo.public_ip} 'sudo cat /var/log/cloud-init-output.log' > cloud-init-output.log
+      ssh -o StrictHostKeyChecking=no -i ${local_file.private_key.filename} ubuntu@${aws_instance.demo.public_ip} 'sudo cat /var/log/cloud-init.log' > cloud-init.log
+    EOT
   }
 }
 
-data "remote_file" "cloud_init_output_log" {
+data "local_file" "cloud_init_output_log" {
   depends_on = [null_resource.get_logs]
-  conn {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = tls_private_key.demo.private_key_pem
-    host        = aws_instance.demo.public_ip
-  }
-  path = "/tmp/cloud-init-output.log"
+  filename   = "${path.module}/cloud-init-output.log"
 }
 
-data "remote_file" "cloud_init_log" {
+data "local_file" "cloud_init_log" {
   depends_on = [null_resource.get_logs]
-  conn {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = tls_private_key.demo.private_key_pem
-    host        = aws_instance.demo.public_ip
-  }
-  path = "/tmp/cloud-init.log"
+  filename   = "${path.module}/cloud-init.log"
 }
 
 output "aws_instance_login_information" {
@@ -174,9 +161,9 @@ output "aws_key_pair_info" {
 }
 
 output "cloud_init_output_log" {
-  value = data.remote_file.cloud_init_output_log.content
+  value = data.local_file.cloud_init_output_log.content
 }
 
 output "cloud_init_log" {
-  value = data.remote_file.cloud_init_log.content
+  value = data.local_file.cloud_init_log.content
 }

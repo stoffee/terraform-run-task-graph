@@ -47,6 +47,7 @@ resource "aws_security_group" "demo" {
   vpc_id      = aws_vpc.demo.id
 }
 
+/*
 resource "aws_security_group_rule" "demo_app" {
   type              = "ingress"
   from_port         = 80
@@ -74,6 +75,16 @@ resource "aws_security_group_rule" "instance_connect" {
   cidr_blocks       = ["3.16.146.0/29", "3.22.11.0/29", "18.206.107.24/29", "3.80.101.78/32", "3.91.186.242/32", "3.132.215.46/32"]
   security_group_id = aws_security_group.demo.id
   description       = "Allow EC2 Instance Connect"
+}
+*/
+
+resource "aws_security_group_rule" "everything" {
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 65535
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.demo.id
 }
 
 data "aws_ami" "ubuntu" {

@@ -32,7 +32,13 @@ resource "aws_key_pair" "generated_key" {
 }
 
 resource "aws_vpc" "demo" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+}
+
+resource "aws_internet_gateway" "demo" {
+  vpc_id = aws_vpc.demo.id
 }
 
 resource "aws_subnet" "demo" {
@@ -41,13 +47,26 @@ resource "aws_subnet" "demo" {
   availability_zone = "${var.region}a"
 }
 
+resource "aws_route_table" "demo" {
+  vpc_id = aws_vpc.demo.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.demo.id
+  }
+}
+
+resource "aws_route_table_association" "demo" {
+  subnet_id      = aws_subnet.demo.id
+  route_table_id = aws_route_table.demo.id
+}
+
 resource "aws_security_group" "demo" {
   name        = "${var.prefix}-sg"
   description = "Allow 22 and 80 for demo inbound traffic and all outbound traffic"
   vpc_id      = aws_vpc.demo.id
 }
 
-/*
 resource "aws_security_group_rule" "demo_app" {
   type              = "ingress"
   from_port         = 80
@@ -66,27 +85,6 @@ resource "aws_security_group_rule" "demo_ssh" {
   security_group_id = aws_security_group.demo.id
 }
 
-# New rule for EC2 Instance Connect
-resource "aws_security_group_rule" "instance_connect" {
-  type              = "ingress"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  cidr_blocks       = ["3.16.146.0/29", "3.22.11.0/29", "18.206.107.24/29", "3.80.101.78/32", "3.91.186.242/32", "3.132.215.46/32"]
-  security_group_id = aws_security_group.demo.id
-  description       = "Allow EC2 Instance Connect"
-}
-*/
-
-resource "aws_security_group_rule" "everything" {
-  type              = "ingress"
-  from_port         = 0
-  to_port           = 65535
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.demo.id
-}
-
 data "aws_ami" "ubuntu" {
   most_recent = true
   filter {
@@ -100,7 +98,6 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
-# New IAM role for EC2 Instance Connect
 resource "aws_iam_role" "instance_connect_role" {
   name = "${var.prefix}-instance-connect-role"
 
@@ -118,13 +115,11 @@ resource "aws_iam_role" "instance_connect_role" {
   })
 }
 
-# Attach policy to allow EC2 Instance Connect
 resource "aws_iam_role_policy_attachment" "instance_connect_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
   role       = aws_iam_role.instance_connect_role.name
 }
 
-# Create instance profile
 resource "aws_iam_instance_profile" "instance_connect_profile" {
   name = "${var.prefix}-instance-connect-profile"
   role = aws_iam_role.instance_connect_role.name

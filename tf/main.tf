@@ -32,19 +32,17 @@ resource "aws_key_pair" "generated_key" {
 }
 
 resource "aws_vpc" "demo" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-}
-
-resource "aws_internet_gateway" "demo" {
-  vpc_id = aws_vpc.demo.id
+  cidr_block = "10.0.0.0/16"
 }
 
 resource "aws_subnet" "demo" {
   vpc_id            = aws_vpc.demo.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "${var.region}a"
+}
+
+resource "aws_internet_gateway" "demo" {
+  vpc_id = aws_vpc.demo.id
 }
 
 resource "aws_route_table" "demo" {
@@ -81,6 +79,16 @@ resource "aws_security_group_rule" "demo_ssh" {
   from_port         = 22
   to_port           = 22
   protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.demo.id
+}
+
+# New outbound rule
+resource "aws_security_group_rule" "demo_outbound" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.demo.id
 }

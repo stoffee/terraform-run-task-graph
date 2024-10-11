@@ -170,6 +170,53 @@ resource "tfe_organization_run_task" "app_task" {
   description  = "Run task for ${var.prefix} application"
 }
 
+# Data source for GitHub App installation
+data "tfe_github_app_installation" "this" {
+  installation_id = var.github_installation_id
+}
+
+# New workspace
+resource "tfe_workspace" "demo" {
+  name         = "run-task-demo-workspace"
+  organization = var.tfe_organization
+  
+  vcs_repo {
+    identifier     = "stoffee/terraform-run-task-graph"
+    branch         = "main"
+    oauth_token_id = data.tfe_github_app_installation.this.oauth_token_id
+  }
+
+  working_directory = "tf/demo_server"
+}
+
+# Attach run task to the new workspace
+resource "tfe_workspace_run_task" "demo" {
+  workspace_id      = tfe_workspace.demo.id
+  task_id           = tfe_organization_run_task.app_task.id
+  enforcement_level = "advisory"
+}
+
+# Create a run in the new workspace
+resource "tfe_run" "demo" {
+  workspace_id = tfe_workspace.demo.id
+  message      = "Triggered by Terraform"
+}
+
+# New variable
+variable "github_installation_id" {
+  type        = string
+  description = "The installation ID for the GitHub App in your organization"
+}
+
+# New output
+output "demo_workspace_id" {
+  value = tfe_workspace.demo.id
+}
+
+output "demo_run_id" {
+  value = tfe_run.demo.id
+}
+
 output "aws_instance_login_information" {
   value = <<INSTANCEIP
   http://${aws_instance.app.public_ip}

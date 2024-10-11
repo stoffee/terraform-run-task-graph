@@ -31,6 +31,12 @@ variable "oauth_token_id" {
   description = "The OAuth token ID for connecting to VCS"
 }
 
+variable "hmac_key" {
+  type        = string
+  description = "HMAC key for the run task"
+  sensitive   = true
+}
+
 provider "aws" {
   region = var.region
 }
@@ -165,6 +171,9 @@ resource "aws_instance" "app" {
 
 data "template_file" "cloud-init" {
   template = file("cloud-init.tpl")
+  vars = {
+    hmac_key = var.hmac_key
+  }
 }
 
 resource "time_sleep" "wait_3_minutes" {

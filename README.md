@@ -91,7 +91,7 @@ To test the pattern recognition:
 5. Run a plan and apply in your "app" workspace.
 6. After the "app" workspace creates the new "demo-server-workspace", add this new workspace to your "demo" project to inherit the AWS credentials. Alternatively, use Doormat to provide AWS credentials directly to the new workspace:
    ```
-   doormat aws tf-push -w demo-server-workspace
+   doormat login -f && doormat aws tf-push --organization $MY_TFC_ORG --workspace graph-terraform-run-task --role $(echo $(doormat aws list) | awk '{ print $3 }')
    ```
 7. Start a plan in the "demo-server-workspace".
 8. Go to the plan details page.

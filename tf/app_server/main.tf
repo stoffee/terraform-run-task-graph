@@ -203,7 +203,7 @@ resource "tfe_workspace_run_task" "demo" {
 }
 
 output "graph_app_url" {
-  value = http://${aws_instance.app.public_ip}
+  value = "http://${aws_instance.app.public_ip}"
 }
 
 output "tfe_run_task_id" {

@@ -2,11 +2,11 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "5.7.0"
+      version = "5.69.0"
     }
     tfe = {
       source  = "hashicorp/tfe"
-      version = "0.59.0"
+      version = "0.42.0"
     }
   }
 }
@@ -24,6 +24,11 @@ variable "prefix" {
 variable "tfe_organization" {
   type        = string
   description = "The name of the Terraform Cloud organization"
+}
+
+variable "github_installation_id" {
+  type        = string
+  description = "The installation ID for the GitHub App in your organization"
 }
 
 provider "aws" {
@@ -177,13 +182,13 @@ data "tfe_github_app_installation" "this" {
 
 # New workspace
 resource "tfe_workspace" "demo" {
-  name         = "run-task-demo-workspace"
+  name         = "demo-server-workspace"
   organization = var.tfe_organization
   
   vcs_repo {
-    identifier     = "stoffee/terraform-run-task-graph"
-    branch         = "main"
-    oauth_token_id = data.tfe_github_app_installation.this.oauth_token_id
+    identifier                 = "stoffee/terraform-run-task-graph"
+    branch                     = "main"
+    github_app_installation_id = data.tfe_github_app_installation.this.id
   }
 
   working_directory = "tf/demo_server"
@@ -197,24 +202,13 @@ resource "tfe_workspace_run_task" "demo" {
 }
 
 # Create a run in the new workspace
-resource "tfe_run" "demo" {
+resource "tfe_workspace_run" "demo" {
   workspace_id = tfe_workspace.demo.id
-  message      = "Triggered by Terraform"
-}
 
-# New variable
-variable "github_installation_id" {
-  type        = string
-  description = "The installation ID for the GitHub App in your organization"
-}
-
-# New output
-output "demo_workspace_id" {
-  value = tfe_workspace.demo.id
-}
-
-output "demo_run_id" {
-  value = tfe_run.demo.id
+  apply {
+    manual_confirm = false
+    wait_for_run   = true
+  }
 }
 
 output "aws_instance_login_information" {
@@ -229,4 +223,12 @@ output "aws_key_pair_info" {
 
 output "tfe_run_task_id" {
   value = tfe_organization_run_task.app_task.id
+}
+
+output "demo_workspace_id" {
+  value = tfe_workspace.demo.id
+}
+
+output "demo_run_id" {
+  value = tfe_workspace_run.demo.id
 }

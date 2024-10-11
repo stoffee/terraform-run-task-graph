@@ -15,6 +15,6 @@ sudo apt-get update
 
 sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-sudo docker run -d -p 80:80 --name graph-terraform-run-task stoffee/graph-terraform-run-task
+sudo docker run -e HMAC_KEY=${hmac_key} -d -p 80:80 --name graph-terraform-secure-run-task stoffee/graph-terraform-secure-run-task
 
 exit 0

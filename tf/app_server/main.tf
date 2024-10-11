@@ -30,7 +30,9 @@ provider "aws" {
   region = var.region
 }
 
-provider "tfe" {}
+provider "tfe" {
+  organization = var.tfe_organization
+}
 
 resource "tls_private_key" "app" {
   algorithm = "RSA"

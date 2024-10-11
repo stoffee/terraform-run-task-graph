@@ -14,7 +14,7 @@ variable "region" {
 
 variable "prefix" {
   type    = string
-  default = "graph-run-task"
+  default = "demo-graph-run-task"
 }
 
 provider "aws" {
@@ -141,7 +141,7 @@ resource "aws_instance" "demo" {
   key_name                    = aws_key_pair.generated_key.key_name
   vpc_security_group_ids      = [aws_security_group.demo.id]
   subnet_id                   = aws_subnet.demo.id
-  user_data                   = data.template_file.cloud-init.rendered
+  #user_data                   = data.template_file.cloud-init.rendered
   iam_instance_profile        = aws_iam_instance_profile.instance_connect_profile.name
 
   tags = {
@@ -149,9 +149,11 @@ resource "aws_instance" "demo" {
   }
 }
 
+/*
 data "template_file" "cloud-init" {
   template = file("cloud-init.tpl")
 }
+*/
 
 output "aws_instance_login_information" {
   value = <<INSTANCEIP

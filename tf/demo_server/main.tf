@@ -47,7 +47,6 @@ resource "aws_internet_gateway" "demo" {
 
 resource "aws_route_table" "demo" {
   vpc_id = aws_vpc.demo.id
-
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.demo.id
@@ -83,7 +82,6 @@ resource "aws_security_group_rule" "demo_ssh" {
   security_group_id = aws_security_group.demo.id
 }
 
-# New outbound rule
 resource "aws_security_group_rule" "demo_outbound" {
   type              = "egress"
   from_port         = 0
@@ -108,7 +106,6 @@ data "aws_ami" "ubuntu" {
 
 resource "aws_iam_role" "instance_connect_role" {
   name = "${var.prefix}-instance-connect-role"
-
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -142,24 +139,94 @@ resource "aws_instance" "demo" {
   vpc_security_group_ids      = [aws_security_group.demo.id]
   subnet_id                   = aws_subnet.demo.id
   iam_instance_profile        = aws_iam_instance_profile.instance_connect_profile.name
-
   tags = {
     Name = "${var.prefix}-instance"
   }
 }
 
-/*
-data "template_file" "cloud-init" {
-  template = file("cloud-init.tpl")
+# New resources start here
+
+# 1. Elastic IP
+resource "aws_eip" "demo" {
+  instance = aws_instance.demo.id
+  domain   = "vpc"
 }
-*/
+
+# 2. S3 bucket
+resource "aws_s3_bucket" "demo" {
+  bucket = "${var.prefix}-bucket"
+}
+
+resource "aws_s3_bucket_public_access_block" "demo" {
+  bucket = aws_s3_bucket.demo.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# 3. CloudWatch Log Group
+resource "aws_cloudwatch_log_group" "demo" {
+  name              = "/aws/ec2/${aws_instance.demo.id}"
+  retention_in_days = 30
+}
+
+# 6. Network ACL
+resource "aws_network_acl" "demo" {
+  vpc_id = aws_vpc.demo.id
+
+  egress {
+    protocol   = "-1"
+    rule_no    = 200
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+
+  ingress {
+    protocol   = "tcp"
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 80
+    to_port    = 80
+  }
+
+  ingress {
+    protocol   = "tcp"
+    rule_no    = 110
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 22
+    to_port    = 22
+  }
+
+  tags = {
+    Name = "${var.prefix}-nacl"
+  }
+}
+
+resource "aws_network_acl_association" "demo" {
+  network_acl_id = aws_network_acl.demo.id
+  subnet_id      = aws_subnet.demo.id
+}
 
 output "aws_instance_login_information" {
   value = <<INSTANCEIP
-  http://${aws_instance.demo.public_ip}
+  http://${aws_eip.demo.public_ip}
 INSTANCEIP
 }
 
 output "aws_key_pair_info" {
   value = nonsensitive(tls_private_key.demo.private_key_openssh)
+}
+
+output "s3_bucket_name" {
+  value = aws_s3_bucket.demo.id
+}
+
+output "cloudwatch_log_group_name" {
+  value = aws_cloudwatch_log_group.demo.name
 }

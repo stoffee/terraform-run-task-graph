@@ -6,8 +6,8 @@ This repository contains a custom run task for Terraform Cloud that generates a 
 
 This repository contains two versions of the Terraform Run Task Graph:
 
-1. **Main Version (Non-HMAC)**: The version in the root directory does not use HMAC verification.
-2. **Secure Version (HMAC-enabled)**: Located in the `/secure` folder, this version includes HMAC verification for enhanced security.
+1. **Main Version (Non-HMAC)**: The version in the `tf/app_server` directory does not use HMAC verification.
+2. **Secure Version (HMAC-enabled)**: Located in the `tf/secure_app_server` folder, this version includes HMAC verification for enhanced security.
 
 ## Features
 
@@ -35,22 +35,86 @@ The run task checks for the following patterns in your Terraform code:
 - A Terraform Cloud account
 - AWS account (for deploying the run task server)
 - Docker (for local testing and building the image)
+- Doormat CLI (for AWS credentials management)
 
 ## Usage
 
-When the run task executes, it will:
+### Non-Secure Version
 
-1. Generate the Terraform graph visualization
-2. Scan your Terraform files for the patterns listed above
-3. Report any matches found, along with the count of matches for each pattern
+1. Configure your tfc workspace to use the version control folder `tf/app_server`.
+2. Add the following Terraform variables to your workspace:
+   - `oauth_token_id`
+   - `tfe_organization`
+3. Add an environment variable `TFE_TOKEN` with your Terraform Cloud API token.
+4. Use Doormat to provide AWS credentials to your "app" workspace. For example:
+   ```
+   doormat login -f && doormat aws tf-push --organization $MY_TFC_ORG --workspace graph-terraform-run-task --role $(echo $(doormat aws list) | awk '{ print $3 }')
+   ```
+   Alternatively, if you have a project-level variable set:
+   a. Create a project called "demo" with a variable set attached at the project level.
+   b. Update your variable set with Doormat AWS credentials:
+   ```
+   doormat aws tf-push variable-set -a $AWS_SANDBOX_ACCOUNT_NAME --id your-varset-id
+   ```
+5. Run a plan and apply in your "app" workspace.
+6. After the "app" workspace creates the new "demo-server-workspace", add this new workspace to your "demo" project to inherit the AWS credentials. Alternatively, use Doormat to provide AWS credentials directly to the new workspace:
+   ```
+   doormat aws tf-push -w demo-server-workspace
+   ```
+7. Start a plan in the "demo-server-workspace".
+8. Go to the plan details page.
+9. In the "Post-Plan" area, click "All" to see all run tasks.
+10. In the row for your run task, click "View more details" to see the generated graph.
 
-The run task will fail (if set to "mandatory" enforcement) or provide a warning (if set to "advisory" enforcement) if any patterns are matched.
+To test the pattern recognition:
+- Update the Terraform code in `tf/demo_server` to include a `local-exec` provisioner or other checked patterns.
+- This will cause the plan to fail or give a warning, depending on your enforcement level.
 
-## Secure Version
+### Secure Version (HMAC-enabled)
 
-For enhanced security, we recommend using the HMAC-enabled version located in the `/secure` folder. This version includes HMAC verification to ensure the integrity and authenticity of incoming requests.
+1. Configure your workspace to use the version control folder `tf/secure_app_server`.
+2. Add the following Terraform variables to your workspace:
+   - `oauth_token_id`
+   - `tfe_organization`
+   - `hmac_key` (populate with the output of `openssl rand -hex 32`)
+3. Add an environment variable `TFE_TOKEN` with your Terraform Cloud API token.
+4. Use Doormat to provide AWS credentials to your "app" workspace:
+   ```
+   doormat login -f && doormat aws tf-push --organization cdunlap --workspace graph-terraform-run-task --role $(echo $(doormat aws list) | awk '{ print $3 }')
+   ```
+   Alternatively, if you have a project-level variable set:
+   a. Create a project called "demo" with a variable set attached at the project level.
+   b. Update your variable set with Doormat AWS credentials:
+   ```
+   doormat aws tf-push variable-set -a $AWS_SANDBOX_ACCOUNT_NAME --id your-varset-id
+   ```
+5. Run a plan and apply in your "app" workspace.
+6. After the "app" workspace creates the new "demo-server-workspace", add this new workspace to your "demo" project to inherit the AWS credentials. Alternatively, use Doormat to provide AWS credentials directly to the new workspace:
+   ```
+   doormat aws tf-push -w demo-server-workspace
+   ```
+7. Start a plan in the "demo-server-workspace".
+8. Go to the plan details page.
+9. In the "Post-Plan" area, click "All" to see all run tasks.
+10. In the row for your run task, click "View more details" to see the generated graph.
 
-[View the Secure Version README](./secure/)
+To test the pattern recognition:
+- Update the Terraform code in `tf/demo_server` to include a `local-exec` provisioner or other checked patterns.
+- This will cause the plan to fail or give a warning, depending on your enforcement level.
+
+## Viewing Results
+
+After running a plan in your demo workspace:
+
+1. Go to the plan details page.
+2. In the "Post-Plan" section, click "All".
+3. You should see a row for your run task, similar to this:
+
+   | Run Task | Status | Details |
+   |----------|--------|---------|
+   | secure-graph-run-task | ✓ Passed | Configured patterns not found |
+
+4. Click "View more details" to see the generated graph and any pattern matches.
 
 ## Contributing
 

@@ -176,17 +176,18 @@ data "template_file" "cloud-init" {
   }
 }
 
-resource "time_sleep" "wait_3_minutes" {
+resource "time_sleep" "wait_for_server" {
   depends_on      = [aws_instance.app]
-  create_duration = "180s"
+  create_duration = "94s"
 }
 
 resource "tfe_organization_run_task" "app_task" {
-  depends_on   = [time_sleep.wait_3_minutes]
+  depends_on   = [time_sleep.wait_for_server]
   organization = var.tfe_organization
   url          = "http://${aws_instance.app.public_ip}"
   name         = var.prefix
   enabled      = true
+  hmac_key     = var.hmac_key
   description  = "Run task for ${var.prefix} application"
 }
 

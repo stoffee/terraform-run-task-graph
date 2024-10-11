@@ -358,15 +358,23 @@ func processJobs() {
 }
 
 func generateTerraformGraph(runDir, outputFile string) error {
-	// Change to the run directory
-	err := os.Chdir(runDir)
+	// Construct the path to the tf/demo_server directory
+	tfDir := filepath.Join(runDir, "tf", "demo_server")
+
+	// Check if the directory exists
+	if _, err := os.Stat(tfDir); os.IsNotExist(err) {
+		return fmt.Errorf("tf/demo_server directory not found in %s", runDir)
+	}
+
+	// Change to the tf/demo_server directory
+	err := os.Chdir(tfDir)
 	if err != nil {
-		return fmt.Errorf("error changing to run directory: %v", err)
+		return fmt.Errorf("error changing to tf/demo_server directory: %v", err)
 	}
 
 	// Run terraform init
 	initCmd := exec.Command("terraform", "init")
-	initCmd.Dir = runDir
+	initCmd.Dir = tfDir
 	err = initCmd.Run()
 	if err != nil {
 		return fmt.Errorf("error running terraform init: %v", err)
@@ -374,7 +382,7 @@ func generateTerraformGraph(runDir, outputFile string) error {
 
 	// Run terraform graph
 	cmd := exec.Command("terraform", "graph")
-	cmd.Dir = runDir
+	cmd.Dir = tfDir
 
 	dotOutput, err := cmd.Output()
 	if err != nil {
@@ -384,7 +392,7 @@ func generateTerraformGraph(runDir, outputFile string) error {
 	// Generate PNG from DOT output
 	dotCmd := exec.Command("dot", "-Tpng", "-o", outputFile)
 	dotCmd.Stdin = bytes.NewReader(dotOutput)
-	dotCmd.Dir = runDir
+	dotCmd.Dir = tfDir
 
 	err = dotCmd.Run()
 	if err != nil {
@@ -420,10 +428,17 @@ func createFailedResult(message string, runID string) Result {
 	}
 }
 
-func runRegexOnFolder(folderPath string, regexPatterns []string) map[string]int {
+func runRegexOnFolder(baseDir string, regexPatterns []string) map[string]int {
 	matchCounts := make(map[string]int)
+	tfDir := filepath.Join(baseDir, "tf", "demo_server")
 
-	err := filepath.Walk(folderPath, func(filePath string, info os.FileInfo, err error) error {
+	// Check if the tf/demo_server directory exists
+	if _, err := os.Stat(tfDir); os.IsNotExist(err) {
+		log.Printf("tf/demo_server directory not found in %s", baseDir)
+		return matchCounts
+	}
+
+	err := filepath.Walk(tfDir, func(filePath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

@@ -185,7 +185,7 @@ resource "tfe_organization_run_task" "app_task" {
   depends_on   = [time_sleep.wait_3_minutes]
   organization = var.tfe_organization
   url          = "http://${aws_instance.app.public_ip}"
-  name         = "${var.prefix}"
+  name         = var.prefix
   enabled      = true
   description  = "Run task for ${var.prefix} application"
 }

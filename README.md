@@ -43,8 +43,8 @@ The run task checks for the following patterns in your Terraform code:
 
 1. Configure your tfc workspace to use the version control folder `tf/app_server`.
 2. Add the following Terraform variables to your workspace:
-   - `oauth_token_id`
-   - `tfe_organization`
+   - `oauth_token_id` - TFC Github App OAuth Token ID
+   - `tfe_organization` - Your Terraform Cloud organization name
 3. Add an environment variable `TFE_TOKEN` with your Terraform Cloud API token.
 4. Use Doormat to provide AWS credentials to your "app" workspace. For example:
    ```
@@ -74,8 +74,8 @@ To test the pattern recognition:
 
 1. Configure your workspace to use the version control folder `tf/secure_app_server`.
 2. Add the following Terraform variables to your workspace:
-   - `oauth_token_id`
-   - `tfe_organization`
+   - `oauth_token_id` - TFC Github App OAuth Token ID
+   - `tfe_organization` - Your Terraform Cloud organization name
    - `hmac_key` (populate with the output of `openssl rand -hex 32`)
 3. Add an environment variable `TFE_TOKEN` with your Terraform Cloud API token.
 4. Use Doormat to provide AWS credentials to your "app" workspace:

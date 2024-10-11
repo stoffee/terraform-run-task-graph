@@ -296,7 +296,7 @@ func processJobs() {
 		matchCounts := runRegexOnFolder(runDir, patterns)
 
 		var result Result
-		if len(matchCounts) > 0 && err == nil {
+		if len(matchCounts) > 0 {
 			var message strings.Builder
 			for pattern, count := range matchCounts {
 				if count > 0 {
@@ -396,10 +396,17 @@ func createFailedResult(message string, runID string) Result {
 	}
 }
 
-func runRegexOnFolder(folderPath string, regexPatterns []string) map[string]int {
+func runRegexOnFolder(baseDir string, regexPatterns []string) map[string]int {
 	matchCounts := make(map[string]int)
+	tfDir := filepath.Join(baseDir, "tf", "demo_server")
 
-	err := filepath.Walk(folderPath, func(filePath string, info os.FileInfo, err error) error {
+	// Check if the tf/demo_server directory exists
+	if _, err := os.Stat(tfDir); os.IsNotExist(err) {
+		log.Printf("tf/demo_server directory not found in %s", baseDir)
+		return matchCounts
+	}
+
+	err := filepath.Walk(tfDir, func(filePath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

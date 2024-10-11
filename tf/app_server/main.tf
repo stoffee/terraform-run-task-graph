@@ -167,13 +167,13 @@ data "template_file" "cloud-init" {
   template = file("cloud-init.tpl")
 }
 
-resource "time_sleep" "wait_1_minutes" {
+resource "time_sleep" "wait_3_minutes" {
   depends_on = [aws_instance.app]
-  create_duration = "60s"
+  create_duration = "180s"
 }
 
 resource "tfe_organization_run_task" "app_task" {
-  depends_on = [time_sleep.wait_1_minutes]
+  depends_on = [time_sleep.wait_3_minutes]
   organization = var.tfe_organization
   url          = "http://${aws_instance.app.public_ip}"
   name         = "${var.prefix}-run-task"

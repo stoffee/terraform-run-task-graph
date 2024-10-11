@@ -26,9 +26,9 @@ variable "tfe_organization" {
   description = "The name of the Terraform Cloud organization"
 }
 
-variable "github_installation_id" {
+variable "oauth_token_id" {
   type        = string
-  description = "The installation ID for the GitHub App in your organization"
+  description = "The OAuth token ID for connecting to VCS"
 }
 
 provider "aws" {
@@ -175,20 +175,15 @@ resource "tfe_organization_run_task" "app_task" {
   description  = "Run task for ${var.prefix} application"
 }
 
-# Data source for GitHub App installation
-data "tfe_github_app_installation" "this" {
-  installation_id = var.github_installation_id
-}
-
 # New workspace
 resource "tfe_workspace" "demo" {
   name         = "demo-server-workspace"
   organization = var.tfe_organization
   
   vcs_repo {
-    identifier                 = "stoffee/terraform-run-task-graph"
-    branch                     = "main"
-    github_app_installation_id = data.tfe_github_app_installation.this.id
+    identifier     = "stoffee/terraform-run-task-graph"
+    branch         = "main"
+    oauth_token_id = var.oauth_token_id
   }
 
   working_directory = "tf/demo_server"
@@ -199,16 +194,6 @@ resource "tfe_workspace_run_task" "demo" {
   workspace_id      = tfe_workspace.demo.id
   task_id           = tfe_organization_run_task.app_task.id
   enforcement_level = "advisory"
-}
-
-# Create a run in the new workspace
-resource "tfe_workspace_run" "demo" {
-  workspace_id = tfe_workspace.demo.id
-
-  apply {
-    manual_confirm = false
-    wait_for_run   = true
-  }
 }
 
 output "aws_instance_login_information" {
@@ -227,8 +212,4 @@ output "tfe_run_task_id" {
 
 output "demo_workspace_id" {
   value = tfe_workspace.demo.id
-}
-
-output "demo_run_id" {
-  value = tfe_workspace_run.demo.id
 }

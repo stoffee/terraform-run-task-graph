@@ -167,9 +167,9 @@ data "template_file" "cloud-init" {
   template = file("cloud-init.tpl")
 }
 
-resource "time_sleep" "wait_3_minutes" {
+resource "time_sleep" "wait_1_minutes" {
   depends_on = [aws_instance.app]
-  create_duration = "180s"
+  create_duration = "60s"
 }
 
 resource "tfe_organization_run_task" "app_task" {

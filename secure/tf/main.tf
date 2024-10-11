@@ -18,7 +18,7 @@ variable "region" {
 
 variable "prefix" {
   type    = string
-  default = "graph-run-task"
+  default = "secure-graph-run-task"
 }
 
 variable "tfe_organization" {
@@ -185,14 +185,14 @@ resource "tfe_organization_run_task" "app_task" {
   depends_on   = [time_sleep.wait_3_minutes]
   organization = var.tfe_organization
   url          = "http://${aws_instance.app.public_ip}"
-  name         = "${var.prefix}-run-task"
+  name         = "${var.prefix}"
   enabled      = true
   description  = "Run task for ${var.prefix} application"
 }
 
 # New workspace
 resource "tfe_workspace" "demo" {
-  name         = "demo-server-workspace"
+  name         = "secure-demo-server-workspace"
   organization = var.tfe_organization
 
   vcs_repo {

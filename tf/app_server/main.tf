@@ -208,10 +208,6 @@ output "aws_instance_login_information" {
 INSTANCEIP
 }
 
-output "aws_key_pair_info" {
-  value = nonsensitive(tls_private_key.app.private_key_openssh)
-}
-
 output "tfe_run_task_id" {
   value = tfe_organization_run_task.app_task.id
 }
